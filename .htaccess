@@ -1,2 +1,88 @@
-Options -Indexes
-DirectoryIndex index.php
+# ============================================================
+# .htaccess  –  SecureLibrary Apache Configuration
+# Security headers, access control, URL routing
+# ============================================================
+
+Options -Indexes -ExecCGI
+ServerSignature Off
+
+# ---- URL Rewriting -----------------------------------------
+RewriteEngine On
+
+# Redirect bare root to index.php
+RewriteRule ^$ /index.php [L,R=302]
+
+# Block hidden files (.git, .env, etc.)
+RewriteRule (^|/)\.(?!well-known) - [F,L]
+
+# ---- Security Headers --------------------------------------
+<IfModule mod_headers.c>
+    # Prevent MIME-type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Prevent clickjacking
+    Header always set X-Frame-Options "DENY"
+
+    # Enable XSS filter in older browsers
+    Header always set X-XSS-Protection "1; mode=block"
+
+    # Control referrer information
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Content Security Policy
+    Header always set Content-Security-Policy "\
+        default-src 'self'; \
+        script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; \
+        style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; \
+        font-src cdnjs.cloudflare.com data:; \
+        img-src 'self' data:; \
+        connect-src 'self'; \
+        frame-ancestors 'none';"
+
+    # Remove server version info
+    Header unset Server
+    Header unset X-Powered-By
+
+    # Permissions Policy (disable unused browser features)
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# ---- Block Direct Access to Sensitive Files ----------------
+<FilesMatch "^(config|header|footer)\.php$">
+    Require all denied
+</FilesMatch>
+
+# Block direct access to .sql files
+<FilesMatch "\.sql$">
+    Require all denied
+</FilesMatch>
+
+# Block access to the includes directory entirely
+<IfModule mod_rewrite.c>
+    RewriteRule ^includes/ - [F,L]
+</IfModule>
+
+# ---- Custom Error Pages ------------------------------------
+ErrorDocument 403 /public/403.php
+ErrorDocument 404 /public/404.php
+
+# ---- PHP Security Settings (if using .htaccess PHP ini) ----
+<IfModule mod_php.c>
+    php_flag  display_errors        Off
+    php_flag  log_errors            On
+    php_value error_log             /tmp/library_errors.log
+    php_flag  allow_url_fopen       Off
+    php_flag  allow_url_include     Off
+    php_flag  session.cookie_httponly  On
+    php_flag  session.use_strict_mode  On
+    php_value session.cookie_samesite  Strict
+</IfModule>
+
+# ---- Cache Control for Static Assets ----------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css              "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png             "access plus 1 month"
+    ExpiresByType image/jpeg            "access plus 1 month"
+</IfModule>
