@@ -441,6 +441,16 @@ This project includes:
 
 ---
 
+## References
+
+This project was inspired by standard secure web development practices and uses concepts from:
+
+- OWASP Top 10 Web Application Security Risks
+- PHP Official Documentation
+- Semgrep Security Rules Documentation
+
+---
+
 ## Important Notes for Assessors / Reviewers
 
 * The project includes a default seeded admin account for demonstration
