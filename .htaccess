@@ -1,0 +1,10 @@
+# vulnerable_app/.htaccess
+# VULNERABLE VERSION — No security headers set
+# Missing: X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy
+
+Options -Indexes
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
